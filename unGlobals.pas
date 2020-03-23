@@ -28,6 +28,10 @@ type
   TPrice = array of TPriceRec;
   TPrices = array of TPrice;
 
+  TDispPr = record
+    ret, dealer: double;
+  end;
+
   TGroupLink = record
     name, link: string;
   end;
@@ -47,6 +51,7 @@ var
   SetG: TSetts;
   JDG: TJData;
   SetsFN1G: string;
+  RurRateG: double;
 
 implementation
 

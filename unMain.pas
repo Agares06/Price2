@@ -26,8 +26,9 @@ type
     ProgressBar1: TProgressBar;
     btSett: TButton;
     cbSett: TCheckBox;
-    Memo1: TMemo;
-    Button1: TButton;
+    Button2: TButton;
+    Edit1: TEdit;
+    Label1: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure clbCategClickCheck(Sender: TObject);
@@ -37,7 +38,8 @@ type
     procedure FormActivate(Sender: TObject);
     procedure cbSettClick(Sender: TObject);
     procedure btSettClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure Edit1Change(Sender: TObject);
   private
     procedure upd_categories;
     procedure upd_prices(AFstTime: boolean = False);
@@ -46,8 +48,10 @@ type
     procedure refresh_all;
     procedure place_logo(sht, celr, celc: integer);
     procedure place_pict(sht, pgrp, pind, ph, pw: integer);
+    procedure get_descr;
     procedure AlignCenterHV(sht: integer; rang: string);
     procedure load_sets;
+    procedure upd_rate;
   public
   end;
 
@@ -93,21 +97,9 @@ procedure TfmMain.btSettClick(Sender: TObject);
     fmSetts.ShowModal;
   end;
 
-procedure TfmMain.Button1Click(Sender: TObject);
-  var
-    i1: integer;
-    hs1: string;
+procedure TfmMain.Button2Click(Sender: TObject);
   begin
-    Memo1.Clear;
-
-    for i1 := 0 to Length(GroupG)-1 do
-    begin
-      hs1 := ExcShName(GroupG[i1].name)+' : '+GroupG[i1].link+
-        '('+IntToStr(Length(ExcShName(GroupG[i1].name)))+')';
-      Memo1.Lines.Append(hs1);
-    end;
-
-    Memo1.Lines.Append('========================');
+    upd_rate;
   end;
 
 procedure TfmMain.AlignCenterHV(sht: integer; rang: string);
@@ -122,6 +114,7 @@ procedure TfmMain.btCrtExcClick(Sender: TObject);
   var
     i1, i2, sind1, tabh1: integer;
     rng1: string;
+    dp1: TDispPr;
   begin
     i2 := 0;
     for i1 := 0 to Length(PricesG)-1 do
@@ -130,6 +123,8 @@ procedure TfmMain.btCrtExcClick(Sender: TObject);
 
     if i2 > 0 then
     begin
+      get_descr;
+
       ExcelG := CreateOLEObject(ExApp);
 
       ExcelG.DisplayAlerts := False;
@@ -160,9 +155,9 @@ procedure TfmMain.btCrtExcClick(Sender: TObject);
 
           ExcelG.WorkBooks[1].WorkSheets[sind1].Cells[2, 2] := '№';
           ExcelG.WorkBooks[1].WorkSheets[sind1].Cells[2, 3] := 'Наименование';
-          ExcelG.WorkBooks[1].WorkSheets[sind1].Cells[2, 4] := 'Описание';
-          ExcelG.WorkBooks[1].WorkSheets[sind1].Cells[2, 5] := 'Цена, р.';
-          ExcelG.WorkBooks[1].WorkSheets[sind1].Cells[2, 6] := 'Ссылки';
+          ExcelG.WorkBooks[1].WorkSheets[sind1].Cells[2, 4] := 'Вид';
+          ExcelG.WorkBooks[1].WorkSheets[sind1].Cells[2, 5] := 'Описание';
+          ExcelG.WorkBooks[1].WorkSheets[sind1].Cells[2, 6] := 'Цена, р.';
 
           tabh1 := Length(PricesCur[i1]);
 
@@ -173,7 +168,7 @@ procedure TfmMain.btCrtExcClick(Sender: TObject);
               ExcelG.WorkBooks[1].WorkSheets[sind1].Cells[i2+3, 3] :=
                     PricesCur[i1][i2].name;
               try
-                place_pict(sind1, i1, i2, 290, 290);
+                place_pict(sind1, i1, i2, 123, 123);
               except
                 ExcelG.WorkBooks[1].WorkSheets[sind1].Cells[i2+3, 4] :=
                     'No image.';
@@ -181,20 +176,22 @@ procedure TfmMain.btCrtExcClick(Sender: TObject);
                 AlignCenterHV(sind1, rng1);
               end;
               ExcelG.WorkBooks[1].WorkSheets[sind1].Cells[i2+3, 5] :=
-                    PricesCur[i1][i2].prc;
-              ExcelG.WorkBooks[1].WorkSheets[sind1].Hyperlinks.Add(
+                PricesCur[i1][i2].descr;
+              dp1 := PriceByRate(RurRateG, PricesCur[i1][i2].prc, 15);
+              ExcelG.WorkBooks[1].WorkSheets[sind1].Cells[i2+3, 6] := dp1.ret;
+{              ExcelG.WorkBooks[1].WorkSheets[sind1].Hyperlinks.Add(
                 Anchor := ExcelG.WorkBooks[1].WorkSheets[sind1].Cells[i2+3, 6],
                 Address := PricesCur[i1][i2].link,
                 ScreenTip := PricesCur[i1][i2].link,
-                TextToDisplay := 'Ссылка');
+                TextToDisplay := 'Ссылка');   }
 
-              ExcelG.WorkBooks[1].WorkSheets[sind1].Rows[i2+3].RowHeight := 230;
+              ExcelG.WorkBooks[1].WorkSheets[sind1].Rows[i2+3].RowHeight := 119;
             end;
 
           for i2 := 1 to ExcelG.WorkBooks[1].WorkSheets[sind1].Shapes.Count do
           begin
             ExcelG.WorkBooks[1].WorkSheets[sind1].Shapes[i2].IncrementLeft(10);
-            ExcelG.WorkBooks[1].WorkSheets[sind1].Shapes[i2].IncrementTop(5);
+            ExcelG.WorkBooks[1].WorkSheets[sind1].Shapes[i2].IncrementTop(10);
           end;
 //FORMATTING PRICE PAGES
           ExcelG.WorkBooks[1].WorkSheets[sind1].Columns[1].ColumnWidth := 1;
@@ -217,6 +214,9 @@ procedure TfmMain.btCrtExcClick(Sender: TObject);
             ExcelG.WorkBooks[1].WorkSheets[sind1].Range[rng1].Borders.Item[i2].Weight := 4;
           ExcelG.WorkBooks[1].WorkSheets[sind1].Range[rng1].Font.Size := 10;
           AlignCenterHV(sind1, rng1);
+//Description column format
+          rng1 := 'E3:E'+IntToStr(tabh1+2);
+          ExcelG.WorkBooks[1].WorkSheets[sind1].Range[rng1].Font.Size := 8;
 //Table head format
           rng1 := 'B2:F2';
           ExcelG.WorkBooks[1].WorkSheets[sind1].Range[rng1].Borders.Item[9].Weight := 4;
@@ -225,11 +225,12 @@ procedure TfmMain.btCrtExcClick(Sender: TObject);
           AlignCenterHV(sind1, rng1);
 //Columns details
           ExcelG.WorkBooks[1].WorkSheets[sind1].Columns[2].AutoFit;
-          ExcelG.WorkBooks[1].WorkSheets[sind1].Columns[3].ColumnWidth := 27;
+          ExcelG.WorkBooks[1].WorkSheets[sind1].Columns[3].ColumnWidth := 20;
           ExcelG.WorkBooks[1].WorkSheets[sind1].Columns[3].WrapText := True;
-          ExcelG.WorkBooks[1].WorkSheets[sind1].Columns[4].ColumnWidth := 48;
-          ExcelG.WorkBooks[1].WorkSheets[sind1].Columns[3].NumberFormat := '0.00';
-          ExcelG.WorkBooks[1].WorkSheets[sind1].Columns[5].AutoFit;
+          ExcelG.WorkBooks[1].WorkSheets[sind1].Columns[4].ColumnWidth := 20;
+          ExcelG.WorkBooks[1].WorkSheets[sind1].Columns[5].ColumnWidth := 42;
+          ExcelG.WorkBooks[1].WorkSheets[sind1].Columns[5].WrapText := True;
+          ExcelG.WorkBooks[1].WorkSheets[sind1].Columns[6].NumberFormat := '0.00';
           ExcelG.WorkBooks[1].WorkSheets[sind1].Columns[6].AutoFit;
         end;
 
@@ -294,10 +295,28 @@ procedure TfmMain.clbPositsClickCheck(Sender: TObject);
     show_price(ctg1);
   end;
 
+procedure TfmMain.Edit1Change(Sender: TObject);
+  var
+    hs1: string;
+  begin
+    try
+      RurRateG := StrToFloat(Edit1.Text);
+    except
+      on E: EConvertError do
+        begin
+          ShowMessage(E.Message);
+          Edit1.Text := '0';
+          RurRateG := 0;
+        end;
+    end;
+  end;
+
 procedure TfmMain.FormActivate(Sender: TObject);
   begin
     if FirstActivate then
     begin
+      upd_rate;
+
       FirstActivate := False;
     end;
   end;
@@ -331,6 +350,42 @@ procedure TfmMain.FormCreate(Sender: TObject);
     SetLength(JDG, 0);
 
     load_sets;
+  end;
+
+procedure TfmMain.get_descr;
+  var
+    i1, i2, pos1: integer;
+    rsp1, hs1, hs2, errst: string;
+    add_brk: boolean;
+  begin
+    for i1 := 0 to Length(PricesCur)-1 do
+      for i2 := 0 to Length(PricesCur[i1])-1 do
+      begin
+        hs1 := '';
+        add_brk := False;
+        try
+          errst := '1';
+          rsp1 := IdHTTP1.Get(PricesCur[i1][i2].link);
+          errst := '2';
+          repeat
+            pos1 := Pos('feature-description__text">', rsp1);
+            if pos1 > 0 then
+            begin
+              Delete(rsp1, 1, pos1+26);
+              hs2 := Copy(rsp1, 1, Pos('<', rsp1)-1);
+              if add_brk then
+                hs2 := ', '+hs2
+              else
+                add_brk := True;
+              hs1 := hs1+hs2;
+            end;
+          until pos1 = 0;
+          PricesCur[i1][i2].descr := hs1;
+          errst := '';
+        except
+          PricesCur[i1][i2].descr := errst;
+        end;
+      end;
   end;
 
 procedure TfmMain.load_sets;
@@ -484,6 +539,24 @@ procedure TfmMain.upd_categories;
       clbCateg.Items.Add(GroupG[i1].name);
       clbCateg.Checked[i1] := True;
     end;
+  end;
+
+procedure TfmMain.upd_rate;
+  var
+    rsp1: string;
+    pos1: integer;
+  begin
+    rsp1 := IdHTTP1.Get('https://myfin.by/bank/kursy_valjut_nbrb/rub');
+    pos1 := Pos('div class="cur-rate__cell"', rsp1);
+    if pos1 > 0 then
+    begin
+      Delete(rsp1, 1, pos1);
+      Delete(rsp1, 1, Pos('class="h1"', rsp1)+10);
+      Edit1.Text := Copy(rsp1, 1, Pos('<', rsp1)-1);
+    end
+    else
+      Edit1.Text := 'Ошибка';
+    Sleep(1);
   end;
 
 procedure TfmMain.upd_prices(AFstTime: boolean = False);

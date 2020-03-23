@@ -3,7 +3,7 @@ object fmMain: TfmMain
   Top = 0
   BorderStyle = bsSingle
   Caption = #1055#1088#1072#1081#1089' '#1054#1054#1054' '#1070#1085#1080#1095#1086#1081#1089
-  ClientHeight = 413
+  ClientHeight = 301
   ClientWidth = 694
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -61,12 +61,24 @@ object fmMain: TfmMain
     Left = 0
     Top = 0
     Width = 185
-    Height = 413
+    Height = 301
     Align = alLeft
     BevelInner = bvLowered
     BevelKind = bkSoft
     TabOrder = 1
-    ExplicitHeight = 304
+    object Label1: TLabel
+      Left = 60
+      Top = 184
+      Width = 61
+      Height = 16
+      Caption = #1050#1091#1088#1089' RUR'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold, fsUnderline]
+      ParentFont = False
+    end
     object btRefr: TButton
       Left = 2
       Top = 20
@@ -110,7 +122,7 @@ object fmMain: TfmMain
     end
     object btSett: TButton
       Left = 2
-      Top = 156
+      Top = 115
       Width = 178
       Height = 25
       Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
@@ -125,12 +137,43 @@ object fmMain: TfmMain
       OnClick = btSettClick
     end
     object cbSett: TCheckBox
-      Left = 8
-      Top = 187
-      Width = 97
+      Left = 82
+      Top = 146
+      Width = 17
       Height = 17
       TabOrder = 4
       OnClick = cbSettClick
+    end
+    object Button2: TButton
+      Left = 102
+      Top = 206
+      Width = 76
+      Height = 25
+      Caption = #1054#1073#1085#1086#1074#1080#1090#1100
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      TabOrder = 5
+      OnClick = Button2Click
+    end
+    object Edit1: TEdit
+      Left = 4
+      Top = 206
+      Width = 89
+      Height = 24
+      Alignment = taRightJustify
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      TabOrder = 6
+      Text = 'Edit1'
+      OnChange = Edit1Change
     end
   end
   object clbCateg: TCheckListBox
@@ -145,25 +188,6 @@ object fmMain: TfmMain
       #1055#1091#1089#1090#1086)
     TabOrder = 2
     OnClick = clbCategClickCheck
-  end
-  object Memo1: TMemo
-    Left = 191
-    Top = 304
-    Width = 495
-    Height = 101
-    Lines.Strings = (
-      'Memo1')
-    ScrollBars = ssVertical
-    TabOrder = 3
-  end
-  object Button1: TButton
-    Left = 584
-    Top = 92
-    Width = 75
-    Height = 25
-    Caption = 'Button1'
-    TabOrder = 4
-    OnClick = Button1Click
   end
   object IdHTTP1: TIdHTTP
     AllowCookies = True

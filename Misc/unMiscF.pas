@@ -8,6 +8,8 @@ function PosInPrice(Pst: TPriceRec; Prc: TPrice): integer;
 function ExcShName(name: string): string;
 procedure CutWord(wrd: string; var in_str: string);
 function QuoteSpacedStr(str: string): string;
+procedure CorrectNDS(var price: double);
+function PriceByRate(rate, price, deal_def: double): TDispPr;
 
 implementation
 
@@ -89,6 +91,19 @@ function QuoteSpacedStr(str: string): string;
 
     if Pos(' ', str) > 0 then
       Result := #39+str+#39;
+  end;
+
+procedure CorrectNDS(var price: double);
+  begin
+    price := Round(price/6*100)*6/100;
+  end;
+
+function PriceByRate(rate, price, deal_def: double): TDispPr;
+  begin
+    Result.ret := price*rate/100;
+    CorrectNDS(Result.ret);
+    Result.dealer := 1.05*price*rate*(100-deal_def)/10000;
+    CorrectNDS(Result.dealer);
   end;
 
 end.
